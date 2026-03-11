@@ -160,10 +160,7 @@ export async function loadingScreenRoutes(app: FastifyInstance): Promise<void> {
         const synced = await syncToResource(config);
 
         const user = getAuthUser(request);
-        await writeAudit(user.sub, 'loading_screen.config.update', {
-            synced,
-            ip: request.ip,
-        });
+        writeAudit({ userId: user.sub, action: 'loading_screen.config.update', details: { synced }, ip: request.ip });
 
         return { success: true, data: config, synced };
     });
@@ -176,10 +173,7 @@ export async function loadingScreenRoutes(app: FastifyInstance): Promise<void> {
         const synced = await syncToResource(config);
 
         const user = getAuthUser(request);
-        await writeAudit(user.sub, 'loading_screen.sync', {
-            synced,
-            ip: request.ip,
-        });
+        writeAudit({ userId: user.sub, action: 'loading_screen.sync', details: { synced }, ip: request.ip });
 
         return { success: true, synced };
     });
@@ -191,9 +185,7 @@ export async function loadingScreenRoutes(app: FastifyInstance): Promise<void> {
         await writeConfig({ ...DEFAULT_CONFIG });
 
         const user = getAuthUser(request);
-        await writeAudit(user.sub, 'loading_screen.config.reset', {
-            ip: request.ip,
-        });
+        writeAudit({ userId: user.sub, action: 'loading_screen.config.reset', ip: request.ip });
 
         return { success: true, data: DEFAULT_CONFIG };
     });
