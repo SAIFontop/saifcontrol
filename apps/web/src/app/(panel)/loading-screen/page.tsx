@@ -73,6 +73,8 @@ interface LoadingConfig {
     showTips: boolean;
     musicEnabled: boolean;
     musicVolume: number;
+    musicUrl: string;
+    backgroundVideo: string;
 }
 
 const AIRCRAFT_ICONS = ['fighter', 'stealth', 'jet', 'bomber', 'drone', 'cas'];
@@ -234,6 +236,12 @@ export default function LoadingScreenPage() {
                     <Field label="Subtitle" value={config.subtitle} onChange={(v) => update('subtitle', v)} />
                     <Field label="Version" value={config.version} onChange={(v) => update('version', v)} />
                     <NumberField label="Max Players" value={config.maxPlayers} onChange={(v) => update('maxPlayers', v)} min={1} max={1024} />
+
+                    <div className="pt-4 border-t border-border">
+                        <h3 className="text-sm font-semibold text-text mb-3">Background Video</h3>
+                        <p className="text-xs text-muted mb-2">Upload a video file to the loading screen html/ folder, or paste a direct video URL. Plays behind all UI elements.</p>
+                        <Field label="Video URL or filename (e.g. bg.mp4)" value={config.backgroundVideo} onChange={(v) => update('backgroundVideo', v)} />
+                    </div>
                 </motion.div>
             )}
 
@@ -277,7 +285,9 @@ export default function LoadingScreenPage() {
 
                     <div className="pt-4 border-t border-border">
                         <h3 className="text-sm font-semibold text-text mb-3">Music</h3>
-                        <div className="flex items-center gap-4">
+                        <p className="text-xs text-muted mb-2">Upload an audio file to the loading screen html/ folder, or paste a direct audio/music URL.</p>
+                        <Field label="Music URL or filename (e.g. music.mp3)" value={config.musicUrl} onChange={(v) => update('musicUrl', v)} />
+                        <div className="flex items-center gap-4 mt-3">
                             <Toggle label="Music Enabled" value={config.musicEnabled} onChange={(v) => update('musicEnabled', v)} />
                             <NumberField label="Volume" value={config.musicVolume} onChange={(v) => update('musicVolume', v)} min={0} max={1} step={0.05} />
                         </div>

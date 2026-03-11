@@ -83,6 +83,8 @@ const DEFAULT_CONFIG = {
 
     musicEnabled: true,
     musicVolume: 0.3,
+    musicUrl: '',
+    backgroundVideo: '',
 };
 
 const CONFIG_FILENAME = 'loading-screen.json';
