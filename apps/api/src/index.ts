@@ -1,6 +1,7 @@
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import websocket from '@fastify/websocket';
 import { ProfilesSchema, SecretsSchema, STORAGE_FILES } from '@saifcontrol/shared';
@@ -70,6 +71,10 @@ async function main() {
     });
 
     await app.register(websocket);
+
+    await app.register(multipart, {
+        limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
+    });
 
     // ─── Login route (before auth middleware) ───
     app.post('/api/auth/login', async (request, reply) => {

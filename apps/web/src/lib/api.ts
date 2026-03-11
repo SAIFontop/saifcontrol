@@ -482,6 +482,48 @@ class ApiClient {
     async resetLoadingScreen() {
         return this.request<Record<string, unknown>>('POST', '/api/loading-screen/reset');
     }
+
+    async uploadLoadingScreenFile(file: File): Promise<ApiResponse<{ filename: string; type: string; size: number }>> {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const headers: Record<string, string> = {};
+        if (this.accessToken) {
+            headers['Authorization'] = `Bearer ${this.accessToken}`;
+        }
+
+        try {
+            let res = await fetch('/api/loading-screen/upload', {
+                method: 'POST',
+                headers,
+                body: formData,
+            });
+
+            if (res.status === 401 && this.refreshTokenValue) {
+                const refreshed = await this.tryRefresh();
+                if (refreshed) {
+                    headers['Authorization'] = `Bearer ${this.accessToken}`;
+                    res = await fetch('/api/loading-screen/upload', {
+                        method: 'POST',
+                        headers,
+                        body: formData,
+                    });
+                } else {
+                    this.clearTokens();
+                    this.onUnauthorized?.();
+                    return { success: false, error: 'Session expired' };
+                }
+            }
+
+            return await res.json();
+        } catch (err) {
+            return { success: false, error: err instanceof Error ? err.message : 'Upload failed' };
+        }
+    }
+
+    async getLoadingScreenSyncInfo() {
+        return this.request<{ configured: boolean; serverDataPath: string | null; htmlDir: string | null; found: boolean }>('GET', '/api/loading-screen/sync-info');
+    }
 }
 
 export type Check = { id: string; label: string; status: string; message: string; details?: string; autoFixAvailable: boolean };

@@ -9,6 +9,7 @@ import {
     ChevronUp,
     Eye,
     EyeOff,
+    Loader2,
     Monitor,
     Plus,
     RefreshCw,
@@ -16,8 +17,9 @@ import {
     Save,
     Trash2,
     Upload,
+    UploadCloud,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const container = {
     hidden: { opacity: 0 },
@@ -239,8 +241,13 @@ export default function LoadingScreenPage() {
 
                     <div className="pt-4 border-t border-border">
                         <h3 className="text-sm font-semibold text-text mb-3">Background Video</h3>
-                        <p className="text-xs text-muted mb-2">Upload a video file to the loading screen html/ folder, or paste a direct video URL. Plays behind all UI elements.</p>
+                        <p className="text-xs text-muted mb-2">Upload a video file or paste a direct URL. Plays behind all UI elements.</p>
                         <Field label="Video URL or filename (e.g. bg.mp4)" value={config.backgroundVideo} onChange={(v) => update('backgroundVideo', v)} />
+                        <FileUpload
+                            accept="video/mp4,video/webm,video/ogg"
+                            label="Upload Video"
+                            onUploaded={(filename) => update('backgroundVideo', filename)}
+                        />
                     </div>
                 </motion.div>
             )}
@@ -285,8 +292,13 @@ export default function LoadingScreenPage() {
 
                     <div className="pt-4 border-t border-border">
                         <h3 className="text-sm font-semibold text-text mb-3">Music</h3>
-                        <p className="text-xs text-muted mb-2">Upload an audio file to the loading screen html/ folder, or paste a direct audio/music URL.</p>
+                        <p className="text-xs text-muted mb-2">Upload an audio file or paste a direct URL.</p>
                         <Field label="Music URL or filename (e.g. music.mp3)" value={config.musicUrl} onChange={(v) => update('musicUrl', v)} />
+                        <FileUpload
+                            accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4"
+                            label="Upload Audio"
+                            onUploaded={(filename) => update('musicUrl', filename)}
+                        />
                         <div className="flex items-center gap-4 mt-3">
                             <Toggle label="Music Enabled" value={config.musicEnabled} onChange={(v) => update('musicEnabled', v)} />
                             <NumberField label="Volume" value={config.musicVolume} onChange={(v) => update('musicVolume', v)} min={0} max={1} step={0.05} />
@@ -528,6 +540,54 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
             <span className={cn('text-sm', value ? 'text-text' : 'text-muted')}>{label}</span>
             {value ? <Eye className="w-3.5 h-3.5 text-primary ml-auto" /> : <EyeOff className="w-3.5 h-3.5 text-muted ml-auto" />}
         </button>
+    );
+}
+
+function FileUpload({ accept, label, onUploaded }: { accept: string; label: string; onUploaded: (filename: string) => void }) {
+    const [uploading, setUploading] = useState(false);
+    const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleUpload = async (file: File) => {
+        setUploading(true);
+        setResult(null);
+        const res = await api.uploadLoadingScreenFile(file);
+        if (res.success && res.data) {
+            setResult({ success: true, message: `Uploaded: ${res.data.filename}` });
+            onUploaded(res.data.filename);
+        } else {
+            setResult({ success: false, message: res.error || 'Upload failed' });
+        }
+        setUploading(false);
+    };
+
+    return (
+        <div className="mt-2">
+            <input
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                className="hidden"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpload(file);
+                    e.target.value = '';
+                }}
+            />
+            <button
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/15 text-accent hover:bg-accent/25 transition text-sm disabled:opacity-50"
+            >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                {uploading ? 'Uploading...' : label}
+            </button>
+            {result && (
+                <p className={cn('text-xs mt-1', result.success ? 'text-success' : 'text-danger')}>
+                    {result.message}
+                </p>
+            )}
+        </div>
     );
 }
 
