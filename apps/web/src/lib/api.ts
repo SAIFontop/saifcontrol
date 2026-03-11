@@ -465,6 +465,23 @@ class ApiClient {
     async getServerLogs() {
         return this.request<{ lines: string[] }>('GET', '/api/server/logs');
     }
+
+    // ─── Loading Screen ───
+    async getLoadingScreenConfig() {
+        return this.request<Record<string, unknown>>('GET', '/api/loading-screen/config');
+    }
+
+    async saveLoadingScreenConfig(config: Record<string, unknown>) {
+        return this.request<Record<string, unknown>>('PUT', '/api/loading-screen/config', config);
+    }
+
+    async syncLoadingScreen() {
+        return this.request<{ synced: boolean }>('POST', '/api/loading-screen/sync');
+    }
+
+    async resetLoadingScreen() {
+        return this.request<Record<string, unknown>>('POST', '/api/loading-screen/reset');
+    }
 }
 
 export type Check = { id: string; label: string; status: string; message: string; details?: string; autoFixAvailable: boolean };

@@ -10,6 +10,7 @@ import { getState, initializeStorage } from './lib/data.js';
 import { initStore } from './lib/store.js';
 import { getAutomationEngine } from './modules/automation/automation.engine.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
+import { loadingScreenRoutes } from './modules/loading-screen/loading-screen.routes.js';
 import { getPluginManager } from './modules/plugins/plugin.manager.js';
 import { pluginRoutes } from './modules/plugins/plugin.routes.js';
 import { setupWizardRoutes } from './modules/setup/setup.routes.js';
@@ -134,6 +135,11 @@ async function main() {
     // Plugin system
     await app.register(async (pluginApp) => {
         await pluginRoutes(pluginApp);
+    });
+
+    // Loading screen config
+    await app.register(async (lsApp) => {
+        await loadingScreenRoutes(lsApp);
     });
     const pm = getPluginManager();
     await pm.discoverPlugins();
