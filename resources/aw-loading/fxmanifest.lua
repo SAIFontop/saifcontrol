@@ -13,6 +13,16 @@ loadscreen_manual_shutdown 'yes'
 files {
     'html/index.html',
     'html/assets/**/*',
+    'html/config.json',
+    'html/*.mp3',
+    'html/*.mp4',
+    'html/*.webm',
+    'html/*.ogg',
+    'html/*.jpg',
+    'html/*.png',
+    'html/*.jpeg',
+    'html/*.webp',
+    'html/*.gif',
 }
 
 client_script 'client.lua'
