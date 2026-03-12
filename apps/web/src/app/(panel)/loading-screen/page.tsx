@@ -553,7 +553,7 @@ function FileUpload({ accept, label, onUploaded }: { accept: string; label: stri
         setResult(null);
         const res = await api.uploadLoadingScreenFile(file);
         if (res.success && res.data) {
-            setResult({ success: true, message: `Uploaded: ${res.data.filename}` });
+            setResult({ success: true, message: `Uploaded & synced: ${res.data.filename}` });
             onUploaded(res.data.filename);
         } else {
             setResult({ success: false, message: res.error || 'Upload failed' });
