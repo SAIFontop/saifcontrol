@@ -1,5 +1,5 @@
 import type { ServerCfgParsed, SetupCheckResult } from '@saifcontrol/shared';
-import { constants, existsSync } from 'fs';
+import { constants, existsSync, readdirSync } from 'fs';
 import { access, readFile } from 'fs/promises';
 import { join } from 'path';
 
@@ -25,6 +25,8 @@ export async function discoverFxServer(): Promise<{
         join(home, 'FXServer'),
         join(home, 'fxserver'),
         join(home, 'fx-server'),
+        join(home, 'fivem'),
+        join(home, 'FiveM'),
         join(home, 'server'),
         '/opt/fxserver',
         '/opt/FXServer',
@@ -63,6 +65,19 @@ export async function discoverFxServer(): Promise<{
                     join(basePath, 'txData', 'default'),
                     join(binPath, '..', 'server-data'),
                 ];
+
+                // Also scan txData subdirectories (txAdmin profile folders like FiveMBasicServerCFXDefault_XXX.base)
+                const txDataDir = join(basePath, 'txData');
+                if (existsSync(txDataDir)) {
+                    try {
+                        const entries = readdirSync(txDataDir, { withFileTypes: true });
+                        for (const entry of entries) {
+                            if (entry.isDirectory() && entry.name !== 'default') {
+                                possibleDataPaths.push(join(txDataDir, entry.name));
+                            }
+                        }
+                    } catch { /* ignore */ }
+                }
 
                 for (const dataPath of possibleDataPaths) {
                     if (existsSync(dataPath)) {

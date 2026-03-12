@@ -1,8 +1,8 @@
 import { ProfilesSchema, STORAGE_FILES } from '@saifcontrol/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
-import { basename, extname, join } from 'path';
+import { basename, extname, join, dirname } from 'path';
 import { writeAudit } from '../../lib/audit.js';
 import { getStore } from '../../lib/store.js';
 
@@ -116,14 +116,15 @@ async function getActiveProfile() {
 }
 
 function findResourceHtmlDir(profile: { serverDataPath: string; txDataPath?: string | null }): string | null {
-    const basePaths = [profile.serverDataPath];
-    if (profile.txDataPath) basePaths.push(profile.txDataPath);
-
     const resourceSubPaths = [
         join('resources', '[aw]', 'aw-loading', 'html'),
         join('resources', 'aw-loading', 'html'),
         join('resources', '[aw]', 'aw-loading', 'ui', 'html'),
     ];
+
+    // 1. Try direct paths from profile
+    const basePaths = [profile.serverDataPath];
+    if (profile.txDataPath) basePaths.push(profile.txDataPath);
 
     for (const base of basePaths) {
         for (const sub of resourceSubPaths) {
@@ -131,6 +132,57 @@ function findResourceHtmlDir(profile: { serverDataPath: string; txDataPath?: str
             if (existsSync(full)) return full;
         }
     }
+
+    // 2. If serverDataPath contains txData, scan sibling profile directories
+    //    e.g. /home/saif/fivem/txData/SomeProfile.base/resources/[aw]/aw-loading/html
+    for (const base of basePaths) {
+        // Check if there's a txData directory at or above this path
+        const txDataCandidates = [
+            join(base, 'txData'),
+            join(base, '..', 'txData'),
+            join(dirname(base), '..', 'txData'),
+        ];
+
+        for (const txDir of txDataCandidates) {
+            if (!existsSync(txDir)) continue;
+            try {
+                const entries = readdirSync(txDir, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (!entry.isDirectory()) continue;
+                    const profileBase = join(txDir, entry.name);
+                    for (const sub of resourceSubPaths) {
+                        const full = join(profileBase, sub);
+                        if (existsSync(full)) return full;
+                    }
+                }
+            } catch { /* ignore read errors */ }
+        }
+    }
+
+    // 3. Last resort: check common home paths
+    const home = process.env.HOME || '/root';
+    const fallbackBases = [
+        join(home, 'fivem'),
+        join(home, 'FXServer'),
+        join(home, 'fx-server'),
+    ];
+
+    for (const fb of fallbackBases) {
+        const txDir = join(fb, 'txData');
+        if (!existsSync(txDir)) continue;
+        try {
+            const entries = readdirSync(txDir, { withFileTypes: true });
+            for (const entry of entries) {
+                if (!entry.isDirectory()) continue;
+                const profileBase = join(txDir, entry.name);
+                for (const sub of resourceSubPaths) {
+                    const full = join(profileBase, sub);
+                    if (existsSync(full)) return full;
+                }
+            }
+        } catch { /* ignore */ }
+    }
+
     return null;
 }
 
