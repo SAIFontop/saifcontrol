@@ -81,6 +81,7 @@ const navGroups: NavGroup[] = [
             { label: 'Automation', href: '/automation', icon: Zap },
             { label: 'Scheduler', href: '/scheduler', icon: Calendar },
             { label: 'Alerts', href: '/alerts', icon: Bell },
+            { label: 'SOC Simulator', href: '/soc-simulator', icon: Shield },
         ],
     },
     {
